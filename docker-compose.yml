@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  app:
+    build: 
+      context: .
+    volumes:
+      - ./:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - 3000:8080
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+    links:
+      - postgres
+
+  app2:
+    build: 
+      context: .
+    volumes:
+      - ./:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - 3001:8080
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+    links:
+      - postgres
+
+  nginx:
+    build:
+      context: ./nginx/.
+    container_name: oitava-igreja-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+      - app2
+    networks:
+      - app-network
+
+  postgres:
+    container_name: postgres
+    restart: always
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myserver
+    networks:
+      - app-network
+    volumes:
+       - postgres:/data/postgres
+
+
+volumes:
+    postgres:
+
+networks:
+  app-network:
+    driver: bridge
+
